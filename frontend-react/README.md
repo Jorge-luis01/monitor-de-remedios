@@ -5,7 +5,8 @@ Interface web responsiva para cadastrar medicamentos e acompanhar lembretes de d
 > Status: protótipo de interface. Ainda não está pronto para produção nem substitui orientação de profissionais de saúde.
 
 ## escritas
-- usei ia pa descrever as funcionalidades 
+- Estou usando a ia para escrevar as alterações aqui para ritimo de escrita
+
 
 ## Funcionalidades atuais
 
@@ -20,6 +21,8 @@ Interface web responsiva para cadastrar medicamentos e acompanhar lembretes de d
 
 - Reorganização do front-end em `src/pages`, `src/styles` e `src/scripts`, preparando o projeto para uma futura migração para React.
 - Padronização dos nomes e variáveis do JavaScript em português para facilitar a manutenção.
+- Migração do código-fonte de JavaScript para TypeScript, com tipagem dos elementos do DOM e verificações de valores ausentes.
+- Configuração de compilação e verificação de tipos por meio de `package.json` e `tsconfig.json`.
 - Após cadastrar, o formulário é limpo e a prévia das doses é atualizada.
 - Ao marcar um lembrete como tomado, o botão é desabilitado para impedir o registro duplicado durante a sessão.
 - Inclusão de melhorias iniciais de acessibilidade: idioma da página, `aria-live` na prévia das doses e rótulo na navegação principal.
@@ -39,15 +42,24 @@ Interface web responsiva para cadastrar medicamentos e acompanhar lembretes de d
 
 ## Como executar
 
-O projeto atual não requer instalação. Para desenvolvimento, abra `src/pages/index.html` em um navegador ou use uma extensão de servidor local, como o Live Server.
+O JavaScript compilado está incluído em `public/app.js`, portanto é possível abrir `src/pages/index.html` diretamente ou usar uma extensão de servidor local, como o Live Server.
+
+Para alterar o TypeScript e gerar novamente o JavaScript, instale o Node.js e execute:
+
+```bash
+npm install
+npm run build
+```
+
+Durante o desenvolvimento, `npm run watch` recompila o arquivo após cada alteração. Use `npm run typecheck` para validar os tipos sem gerar arquivos.
 
 ## Estrutura
 
 - `src/pages/`: páginas da aplicação.
 - `src/styles/`: estilos globais.
-- `src/scripts/`: comportamento e interações da interface.
+- `src/scripts/`: código-fonte TypeScript do comportamento da interface.
 - `src/components/`, `src/services/`, `src/types/` e `src/assets/`: diretórios reservados para a evolução para React.
-- `public/`: arquivos públicos da aplicação.
+- `public/`: arquivos públicos, incluindo o JavaScript compilado para o navegador.
 
 ## Segurança
 
