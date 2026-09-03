@@ -1,68 +1,109 @@
 # Dose Certa
 
-Interface web responsiva para cadastrar medicamentos e acompanhar lembretes de doses.
+Aplicação web responsiva em React e TypeScript para cadastrar medicamentos e acompanhar lembretes de doses.
 
-> Status: protótipo de interface. Ainda não está pronto para produção nem substitui orientação de profissionais de saúde.
+> Projeto demonstrativo. Não substitui orientação de profissionais de saúde e ainda não possui notificações em segundo plano.
 
-## escritas
-- Estou usando a ia para escrevar as alterações aqui para ritimo de escrita
+## Tecnologias
 
+- React 19
+- TypeScript
+- Vite
+- React Router
+- Lucide React
+- CSS responsivo
 
-## Funcionalidades atuais
+## O que foi modificado
 
-- Formulário com nome do medicamento, intervalo entre doses, duração e horário inicial.
-- Prévia automática das quatro próximas doses conforme o horário e o intervalo selecionados.
-- Seleção visual entre alarme e notificação.
-- Tela de medicamentos com ações visuais de pausar, retomar e excluir.
-- Tela de lembretes com ação de marcar uma dose como tomada.
-- Layout responsivo para dispositivos móveis, com navegação fixa na parte inferior.
+- A estrutura anterior, formada por quatro arquivos HTML separados, foi substituída por uma aplicação React de página única.
+- O arquivo principal `src/scripts/app.ts` foi dividido em componentes, páginas, contexto, serviços e tipos.
+- A inicialização manual do JavaScript foi substituída pelo ponto de entrada React `src/main.tsx`.
+- A troca de páginas por links entre arquivos HTML foi substituída pelo React Router.
+- As rotas usam `HashRouter`, evitando erros de página não encontrada em hospedagens estáticas.
+- Os dados estáticos de medicamentos e lembretes foram convertidos em estado React compartilhado.
+- As manipulações diretas do DOM, como `querySelector`, `classList` e alteração de `textContent`, foram substituídas por estado, propriedades e renderização declarativa.
+- O JavaScript compilado que ficava em `public/app.js` deixou de ser mantido manualmente; agora o Vite gera os arquivos de produção.
+- O `tsconfig.json` foi atualizado para trabalhar com arquivos `.tsx`, módulos ESNext, JSX do React e verificação estrita de tipos.
+- O `package.json` passou a incluir os comandos de desenvolvimento, build, prévia e validação de tipos.
+- O arquivo `confing.html` e seu nome incorreto foram substituídos pela rota `#/configuracoes` e pelo componente `ConfiguracoesPage.tsx`.
+- O CSS existente foi adaptado para componentes React, ícones, mensagens, estados vazios, switches e foco de teclado.
 
-## Alterações realizadas
+## Adições desta versão
 
-- Reorganização do front-end em `src/pages`, `src/styles` e `src/scripts`, preparando o projeto para uma futura migração para React.
-- Padronização dos nomes e variáveis do JavaScript em português para facilitar a manutenção.
-- Migração do código-fonte de JavaScript para TypeScript, com tipagem dos elementos do DOM e verificações de valores ausentes.
-- Configuração de compilação e verificação de tipos por meio de `package.json` e `tsconfig.json`.
-- Após cadastrar, o formulário é limpo e a prévia das doses é atualizada.
-- Ao marcar um lembrete como tomado, o botão é desabilitado para impedir o registro duplicado durante a sessão.
-- Inclusão de melhorias iniciais de acessibilidade: idioma da página, `aria-live` na prévia das doses e rótulo na navegação principal.
-- Inclusão de `.gitignore` para arquivos de ambiente, dependências, artefatos de build, logs e anotações locais.
+- `App.tsx` para organizar todas as rotas da aplicação.
+- `AppLayout.tsx` para compartilhar o conteúdo principal e a navegação inferior.
+- `PageHeader.tsx` para padronizar os cabeçalhos das telas.
+- `MedicationContext.tsx` para centralizar medicamentos, doses tomadas e preferências.
+- Tipos TypeScript para medicamentos, formulário, lembretes e configurações.
+- Serviço de armazenamento com tratamento de erros do `localStorage`.
+- Serviço para calcular horários, data atual, duração do tratamento e lembretes diários.
+- Cadastro funcional com campo separado para a dose do medicamento.
+- Redirecionamento e mensagem de sucesso após um cadastro.
+- Persistência de medicamentos, pausas, preferências e doses tomadas após atualizar a página.
+- Contagem dinâmica e pluralização de medicamentos ativos.
+- Confirmação antes da exclusão de um medicamento.
+- Estado vazio para listas sem medicamentos ou lembretes.
+- Data atual exibida automaticamente na tela de lembretes.
+- Destaque automático da próxima dose ainda não tomada.
+- Preferência de textos ampliados.
+- Ícones acessíveis fornecidos pelo Lucide React.
+- Metadados básicos de descrição e cor do tema no HTML principal.
 
-## Ajustes planejados antes de produção
+## Funcionalidades
 
-- Persistir medicamentos, pausas e doses tomadas em uma API e banco de dados; atualmente as alterações se perdem ao atualizar a página.
-- Fazer o cadastro criar o medicamento, suas doses e os lembretes nas telas correspondentes; hoje ele apenas confirma visualmente o envio.
-- Implementar edição de medicamentos e confirmação ou opção de desfazer antes da exclusão.
-- Usar a quantidade de dias para calcular o término do tratamento e encerrar lembretes automaticamente.
-- Exibir data junto aos horários que atravessam a meia-noite.
-- Criar alarmes e notificações reais, incluindo solicitação de permissão e tratamento de indisponibilidade no dispositivo.
-- Tornar as opções de Configurações funcionais e persistentes.
-- Adicionar testes automatizados, testes de acessibilidade, validação em celulares reais e um ambiente de homologação.
-- Renomear `confing.html` para um nome sem erro tipográfico antes de definir rotas públicas.
+- Cadastro de medicamento com nome, dose, intervalo, duração e horário inicial.
+- Prévia automática das próximas doses.
+- Seleção entre alarme e notificação.
+- Listagem compartilhada entre as telas.
+- Pausa, retomada e exclusão com confirmação.
+- Geração dinâmica dos lembretes do dia.
+- Registro de doses tomadas.
+- Contagem correta de medicamentos ativos.
+- Configuração de som e textos ampliados.
+- Persistência local dos dados e preferências no navegador.
+- Estados vazios e mensagens de sucesso.
 
 ## Como executar
 
-O JavaScript compilado está incluído em `public/app.js`, portanto é possível abrir `src/pages/index.html` diretamente ou usar uma extensão de servidor local, como o Live Server.
-
-Para alterar o TypeScript e gerar novamente o JavaScript, instale o Node.js e execute:
+É necessário ter uma versão do Node.js compatível com o Vite 8.
 
 ```bash
 npm install
-npm run build
+npm run dev
 ```
 
-Durante o desenvolvimento, `npm run watch` recompila o arquivo após cada alteração. Use `npm run typecheck` para validar os tipos sem gerar arquivos.
+O terminal exibirá o endereço local da aplicação.
+
+## Comandos
+
+```bash
+npm run dev        # inicia o servidor de desenvolvimento
+npm run build      # valida os tipos e gera a versão de produção
+npm run preview    # abre uma prévia da versão de produção
+npm run typecheck  # verifica somente os tipos
+```
 
 ## Estrutura
 
-- `src/pages/`: páginas da aplicação.
-- `src/styles/`: estilos globais.
-- `src/scripts/`: código-fonte TypeScript do comportamento da interface.
-- `src/components/`, `src/services/`, `src/types/` e `src/assets/`: diretórios reservados para a evolução para React.
-- `public/`: arquivos públicos, incluindo o JavaScript compilado para o navegador.
+- `src/components/`: componentes compartilhados de layout e cabeçalho.
+- `src/context/`: estado global dos medicamentos e preferências.
+- `src/pages/`: telas React da aplicação.
+- `src/services/`: armazenamento local e cálculo dos horários.
+- `src/styles/`: estilos globais e responsivos.
+- `src/types/`: tipos e contratos TypeScript.
+- `public/`: arquivos públicos estáticos.
 
-## Segurança
+## Rotas
 
-Arquivos `.env` e outros dados locais estão excluídos pelo `.gitignore`. Caso sejam necessárias variáveis de ambiente, use um arquivo `.env.example` sem valores sensíveis como referência.
+- `#/`: cadastro de medicamento.
+- `#/medicamentos`: medicamentos cadastrados.
+- `#/lembretes`: doses programadas para o dia.
+- `#/configuracoes`: preferências da aplicação.
 
-Como o protótipo ainda não possui autenticação, API ou persistência, esses controles deverão ser definidos antes da publicação: validação no servidor, controle de acesso, proteção de dados de saúde e política de privacidade.
+O projeto usa rotas com hash para funcionar em hospedagens estáticas sem configuração adicional no servidor.
+
+## Segurança e limitações
+
+Os dados ficam apenas no `localStorage` do navegador. Não há autenticação, sincronização com servidor ou backup em nuvem.
+
+Antes de uma publicação real, ainda será necessário implementar uma API segura, autenticação, proteção dos dados de saúde, política de privacidade e notificações confiáveis em segundo plano.

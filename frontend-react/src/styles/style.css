@@ -19,8 +19,16 @@ body {
 }
 
 body {
+  min-width: 320px;
+  min-height: 100vh;
   color: var(--ink);
   font: 14px/1.45 Arial, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 button {
@@ -30,6 +38,18 @@ button {
 button:active,
 a:active {
   transform: scale(0.98);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.app-frame {
+  min-height: 100dvh;
 }
 
 .app-shell {
@@ -98,7 +118,6 @@ select {
   outline: 0;
   background: #ffffff;
   color: var(--ink);
-  font: inherit;
 }
 
 input:focus,
@@ -130,7 +149,11 @@ select {
 }
 
 .choice {
+  display: inline-flex;
   flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   height: 50px;
   border: 1px solid var(--line);
   border-radius: 11px;
@@ -268,6 +291,9 @@ select {
 }
 
 .medicine-card small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   margin-left: 18px;
   color: var(--muted);
 }
@@ -280,6 +306,9 @@ select {
 
 .medicine-card footer button,
 .take-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: 0;
   background: none;
   color: var(--blue);
@@ -323,6 +352,9 @@ select {
 }
 
 .schedule-item p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin: 2px 0 0;
   color: var(--muted);
   font-size: 11px;
@@ -336,39 +368,157 @@ select {
   color: var(--mint-ink);
 }
 
+.take-button:disabled {
+  cursor: default;
+}
+
 .setting {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
   padding: 14px;
+  color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.setting i {
-  font-size: 16px;
-  font-style: normal;
+.setting-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: var(--blue);
 }
 
-.setting span {
+.setting-copy {
   display: grid;
   flex: 1;
   gap: 2px;
 }
 
-.setting strong {
+.setting-copy strong {
   font-size: 12px;
 }
 
-.setting small {
+.setting-copy small {
   color: var(--muted);
   font-size: 10px;
 }
 
-.setting > b {
+.setting-static {
+  cursor: default;
+}
+
+.switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: 0 0 38px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 160ms ease;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px #0f172a33;
+  transition: transform 160ms ease;
+}
+
+.switch-input:checked + .switch {
+  background: var(--blue);
+}
+
+.switch-input:checked + .switch::after {
+  transform: translateX(16px);
+}
+
+.switch-input:focus-visible + .switch {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.status-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
   color: var(--muted);
-  font-size: 21px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.settings-note {
+  margin: 16px 4px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.success-message {
+  margin: 0 0 12px;
+  padding: 11px 12px;
+  border: 1px solid #a7f3d0;
+  border-radius: 11px;
+  background: var(--mint);
+  color: #047857;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 28px 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff80;
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.large-text .page-heading h1 {
+  font-size: 28px;
+}
+
+.large-text .page-heading > p:not(.eyebrow),
+.large-text .medicine-card h2,
+.large-text .schedule-item h2 {
+  font-size: 16px;
+}
+
+.large-text .medicine-card p,
+.large-text .medicine-card strong,
+.large-text .medicine-card small,
+.large-text .schedule-item p,
+.large-text .setting-copy strong,
+.large-text .setting-copy small,
+.large-text .bottom-nav a {
+  font-size: 12px;
 }
 
 @media (min-width: 600px) {
