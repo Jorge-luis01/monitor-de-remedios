@@ -2,9 +2,14 @@ import type { DoseReminder, Medication } from '../types/medication';
 
 const MINUTES_PER_DAY = 24 * 60;
 
-function timeToMinutes(time: string): number {
-  const [hours = 0, minutes = 0] = time.split(':').map(Number);
-  return hours * 60 + minutes;
+function timeToMinutes(time: string): number | null {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time);
+
+  if (!match) {
+    return null;
+  }
+
+  return Number(match[1]) * 60 + Number(match[2]);
 }
 
 function minutesToTime(totalMinutes: number): string {
@@ -16,6 +21,11 @@ function minutesToTime(totalMinutes: number): string {
 
 export function getDosePreview(firstDose: string, intervalHours: number, count = 4): string[] {
   const firstDoseMinutes = timeToMinutes(firstDose);
+
+  if (firstDoseMinutes === null || intervalHours <= 0 || count <= 0) {
+    return [];
+  }
+
   return Array.from({ length: count }, (_, index) =>
     minutesToTime(firstDoseMinutes + index * intervalHours * 60),
   );

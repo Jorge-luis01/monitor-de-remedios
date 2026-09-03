@@ -49,13 +49,14 @@ export function ConfiguracoesPage() {
           </span>
           <span className="status-chip">Em breve</span>
         </div>
-        <SettingRow
-          icon={Volume2}
-          title="Som dos alarmes"
-          description={preferences.soundEnabled ? 'Ativado' : 'Desativado'}
-          checked={preferences.soundEnabled}
-          onChange={update('soundEnabled')}
-        />
+        <div className="setting setting-static">
+          <span className="setting-icon"><Volume2 aria-hidden="true" size={19} /></span>
+          <span className="setting-copy">
+            <strong>Som dos alarmes</strong>
+            <small>Será configurável quando os alarmes forem integrados.</small>
+          </span>
+          <span className="status-chip">Em breve</span>
+        </div>
         <SettingRow
           icon={Accessibility}
           title="Textos ampliados"

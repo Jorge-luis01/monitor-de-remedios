@@ -28,6 +28,5 @@ export interface DoseReminder {
 }
 
 export interface Preferences {
-  soundEnabled: boolean;
   largeText: boolean;
 }

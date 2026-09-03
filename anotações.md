@@ -1,25 +1,25 @@
-1: decidi separar o projeto em 4 partes: inicio, medicamentos, lembretes e configurações
+# Notas de desenvolvimento
 
-2: fiz um css global para todas as telas terem o mesmo estilo, cores e tamanho de botões
+## Protótipo inicial
 
-3: montei o cadastro de medicamento com nome, intervalo entre doses, quantidade de dias e horário da primeira dose
+- Separei a interface em cadastro, medicamentos, lembretes e configurações.
+- Criei um estilo global para manter cores, botões e espaçamentos consistentes.
+- Implementei a prévia dos horários com base na primeira dose e no intervalo escolhido.
+- Adicionei as ações de pausar, retomar, excluir e marcar uma dose como tomada.
+- Ajustei a navegação e o layout para telas pequenas.
 
-4: adicionei a opção de escolher entre alarme e notificação
+## Migração do frontend
 
-5: fiz o javascript para calcular as proximas doses usando o horario e o intervalo escolhidos
+- Reorganizei o frontend em componentes, páginas, serviços e tipos.
+- Migrei a interface para React e TypeScript sem alterar a proposta visual.
+- Adicionei rotas e persistência local para os dados do protótipo.
 
-6: fiz a tela de medicamentos com os botões de pausar, retomar e excluir
+## Início do backend
 
-7: fiz a tela de lembretes e o botão tomar, que muda para tomado quando a pessoa clica
+- Preparei a estrutura Java em camadas.
+- Adicionei uma API Spring Boot básica para medicamentos.
+- Mantive o repositório em memória para validar o fluxo antes de escolher o banco de dados.
 
-8: fiz a tela de configurações com as opções principais do aplicativo
+## Próxima etapa
 
-9: deixei o projeto melhor para celular com menu fixo embaixo, botões maiores e ajuste para tela pequena
-
-10: na quantidade de dias deixei opções de 1 dia ate 30 dias, pois o tratamento pode durar ate um mes
-
-11: resolvi fazer o back no mesmo projeto, mesmo não sendo recomendado esse e uma exeplo que ira ficar no meu github, o que irei lancar ira ser diferente 
-
-12:Fiz uma arquitetura de pastas ja pronta para migrara para react e adicioneis novas pastas 
-
-13: usei a ia no readme para 
+Integrar o frontend com a API e substituir o armazenamento local por persistência no backend.

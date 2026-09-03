@@ -13,33 +13,9 @@ const MEDICATIONS_KEY = 'dose-certa:medications';
 const TAKEN_DOSES_KEY = 'dose-certa:taken-doses';
 const PREFERENCES_KEY = 'dose-certa:preferences';
 
-const initialMedications: Medication[] = [
-  {
-    id: 'dipirona-demo',
-    name: 'Dipirona 500mg',
-    dosage: '500 mg',
-    intervalHours: 8,
-    durationDays: 7,
-    firstDose: '08:00',
-    reminderType: 'alarm',
-    active: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'amoxicilina-demo',
-    name: 'Amoxicilina 500mg',
-    dosage: '500 mg',
-    intervalHours: 12,
-    durationDays: 5,
-    firstDose: '08:00',
-    reminderType: 'notification',
-    active: true,
-    createdAt: new Date().toISOString(),
-  },
-];
+const initialMedications: Medication[] = [];
 
 const initialPreferences: Preferences = {
-  soundEnabled: true,
   largeText: false,
 };
 
