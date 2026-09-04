@@ -43,3 +43,26 @@ O backend oferece operações básicas de cadastro, consulta, alteração de sta
 - Ampliar os testes automatizados.
 
 Este projeto é demonstrativo e não substitui orientação médica.
+
+## Atualizações adicionadas
+
+### Banco de dados de teste
+
+- Inclusão do H2 como banco de dados local para desenvolvimento e testes.
+- Persistência dos medicamentos em `backend-java/data/dose-certa.mv.db`.
+- Configuração de um banco H2 em memória durante os testes automatizados.
+- Disponibilização do console H2 em `http://localhost:8080/h2-console/` enquanto o backend estiver em execução.
+- Arquivos locais do banco permanecem fora do Git por meio do `.gitignore`.
+
+### Qualidade e validação
+
+- Testes automatizados do backend executados com Maven.
+- Verificação do cadastro, consulta, pausa, retomada e exclusão de medicamentos pela API.
+- Validação de respostas para dados inválidos e recursos inexistentes.
+- Testes de persistência realizados após a reinicialização do backend.
+- Build e verificação de tipos do frontend executados com sucesso.
+- CORS validado para a comunicação local entre as portas `5173` e `8080`.
+
+### Observação sobre a integração
+
+O frontend continua armazenando os medicamentos no `localStorage`. A conexão da interface React com a API Spring Boot e o banco H2 permanece como a próxima etapa da aplicação.
