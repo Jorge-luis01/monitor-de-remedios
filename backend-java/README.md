@@ -25,6 +25,20 @@ Para executar os testes:
 mvn test
 ```
 
+## Banco local
+
+O backend usa H2 em modo arquivo durante o desenvolvimento. Os dados ficam em
+`backend-java/data` e continuam disponíveis depois que a API é reiniciada.
+
+O console pode ser acessado em `http://localhost:8080/h2-console` usando:
+
+- URL JDBC: `jdbc:h2:file:./data/dose-certa`
+- usuário: `sa`
+- senha: vazia
+
+Nos testes, um banco H2 separado é criado em memória e descartado ao final da
+execução.
+
 ## Organização
 
 - `controller`: endpoints HTTP.
@@ -34,4 +48,4 @@ mvn test
 - `repository`: armazenamento dos medicamentos.
 - `service`: regras de negócio.
 
-O repositório atual é mantido em memória. Um banco de dados será adicionado quando a integração com o frontend estiver pronta.
+O frontend ainda não consome esta API. A integração HTTP será feita em uma etapa separada.

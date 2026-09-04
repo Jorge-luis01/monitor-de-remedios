@@ -1,18 +1,12 @@
 package br.com.dosecerta.repository;
 
 import br.com.dosecerta.model.entity.Medication;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface MedicationRepository {
+public interface MedicationRepository extends JpaRepository<Medication, UUID> {
 
-    Medication save(Medication medication);
-
-    List<Medication> findAll();
-
-    Optional<Medication> findById(UUID id);
-
-    void deleteById(UUID id);
+    List<Medication> findAllByOrderByCreatedAtAsc();
 }

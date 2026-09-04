@@ -2,22 +2,52 @@ package br.com.dosecerta.model.entity;
 
 import br.com.dosecerta.model.enums.MedicationStatus;
 import br.com.dosecerta.model.enums.ReminderType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "medications")
 public class Medication {
 
-    private final UUID id;
-    private final String name;
-    private final String dosage;
-    private final int intervalHours;
-    private final int durationDays;
-    private final LocalTime firstDose;
-    private final ReminderType reminderType;
-    private final Instant createdAt;
+    @Id
+    private UUID id;
+
+    @Column(nullable = false, length = 120)
+    private String name;
+
+    @Column(nullable = false, length = 60)
+    private String dosage;
+
+    @Column(name = "interval_hours", nullable = false)
+    private int intervalHours;
+
+    @Column(name = "duration_days", nullable = false)
+    private int durationDays;
+
+    @Column(name = "first_dose", nullable = false)
+    private LocalTime firstDose;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reminder_type", nullable = false, length = 20)
+    private ReminderType reminderType;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private MedicationStatus status;
+
+    protected Medication() {
+    }
 
     public Medication(
             UUID id,

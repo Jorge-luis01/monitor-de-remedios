@@ -38,7 +38,7 @@ public class MedicationService {
     }
 
     public List<MedicationResponse> findAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByCreatedAtAsc().stream()
                 .map(MedicationResponse::from)
                 .toList();
     }

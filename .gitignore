@@ -9,6 +9,8 @@ dist/
 build/
 coverage/
 target/
+.tools/
+backend-java/data/
 
 # Logs and local tooling
 *.log

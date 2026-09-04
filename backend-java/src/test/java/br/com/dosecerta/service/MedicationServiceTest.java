@@ -5,22 +5,31 @@ import br.com.dosecerta.dto.response.MedicationResponse;
 import br.com.dosecerta.exception.MedicationNotFoundException;
 import br.com.dosecerta.model.enums.MedicationStatus;
 import br.com.dosecerta.model.enums.ReminderType;
-import br.com.dosecerta.repository.InMemoryMedicationRepository;
+import br.com.dosecerta.repository.MedicationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class MedicationServiceTest {
 
+    @Autowired
     private MedicationService service;
+
+    @Autowired
+    private MedicationRepository repository;
 
     @BeforeEach
     void setUp() {
-        service = new MedicationService(new InMemoryMedicationRepository());
+        repository.deleteAll();
     }
 
     @Test

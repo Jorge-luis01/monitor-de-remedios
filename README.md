@@ -32,12 +32,12 @@ A API usa `http://localhost:8080`. O endpoint `GET /api/health` pode ser usado p
 
 O frontend permite cadastrar medicamentos, visualizar os horários do dia, pausar tratamentos e registrar doses tomadas. Por enquanto, esses dados ficam no `localStorage` do navegador.
 
-O backend oferece operações básicas de cadastro, consulta, alteração de status e exclusão. O repositório é mantido em memória, portanto os registros são perdidos quando a API reinicia.
+O backend oferece operações básicas de cadastro, consulta, alteração de status e exclusão. Durante o desenvolvimento, os registros são persistidos em um banco H2 local dentro de `backend-java/data`.
 
 ## Próximos passos
 
 - Consumir a API Spring Boot no frontend.
-- Adicionar banco de dados e migrações.
+- Adicionar migrações versionadas para o banco de dados.
 - Associar medicamentos a usuários autenticados.
 - Criar histórico de doses e notificações confiáveis.
 - Ampliar os testes automatizados.
