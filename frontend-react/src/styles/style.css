@@ -19,7 +19,7 @@ body {
 }
 
 body {
-  min-width: 320px;
+  width: 100%;
   min-height: 100vh;
   color: var(--ink);
   font: 14px/1.45 Arial, sans-serif;
