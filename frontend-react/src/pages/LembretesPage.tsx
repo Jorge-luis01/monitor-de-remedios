@@ -1,5 +1,5 @@
 import { Bell, Check, Clock3 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { useMedications } from '../context/MedicationContext';
 import { buildTodayReminders, getTodayLabel } from '../services/schedule';
@@ -11,11 +11,17 @@ function getCurrentTime(): string {
 
 export function LembretesPage() {
   const { medications, takenDoseIds, markDoseAsTaken } = useMedications();
+  const [currentTime, setCurrentTime] = useState(getCurrentTime);
   const reminders = useMemo(
     () => buildTodayReminders(medications, takenDoseIds),
     [medications, takenDoseIds],
   );
-  const currentTime = getCurrentTime();
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setCurrentTime(getCurrentTime()), 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const nextReminderId = reminders.find(
     (reminder) => !reminder.taken && reminder.time >= currentTime,
   )?.id;

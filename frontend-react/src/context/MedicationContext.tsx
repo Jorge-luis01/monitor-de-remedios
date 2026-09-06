@@ -84,6 +84,7 @@ export function MedicationProvider({ children }: { children: ReactNode }) {
       },
       removeMedication: (id) => {
         setMedications((current) => current.filter((medication) => medication.id !== id));
+        setTakenDoseIds((current) => current.filter((doseId) => !doseId.startsWith(`${id}-`)));
       },
       markDoseAsTaken: (id) => {
         setTakenDoseIds((current) => (current.includes(id) ? current : [...current, id]));
