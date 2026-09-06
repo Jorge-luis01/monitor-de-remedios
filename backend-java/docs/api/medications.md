@@ -49,6 +49,22 @@ Content-Type: application/json
 
 Valores permitidos: `ACTIVE` e `PAUSED`.
 
+## Editar dados do medicamento
+
+```http
+PUT /api/medications/{id}
+Content-Type: application/json
+
+{
+  "name": "Dipirona",
+  "dosage": "1 g",
+  "intervalHours": 8,
+  "durationDays": 5,
+  "firstDose": "08:00",
+  "reminderType": "NOTIFICATION"
+}
+```
+
 ## Excluir
 
 ```http

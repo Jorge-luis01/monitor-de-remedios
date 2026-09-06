@@ -110,4 +110,20 @@ public class Medication {
     public void changeStatus(MedicationStatus newStatus) {
         this.status = newStatus;
     }
+
+    public void update(
+            String name,
+            String dosage,
+            int intervalHours,
+            int durationDays,
+            LocalTime firstDose,
+            ReminderType reminderType
+    ) {
+        this.name = name;
+        this.dosage = dosage;
+        this.intervalHours = intervalHours;
+        this.durationDays = durationDays;
+        this.firstDose = firstDose;
+        this.reminderType = reminderType;
+    }
 }

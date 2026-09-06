@@ -1,6 +1,7 @@
 package br.com.dosecerta.service;
 
 import br.com.dosecerta.dto.request.CreateMedicationRequest;
+import br.com.dosecerta.dto.request.UpdateMedicationRequest;
 import br.com.dosecerta.dto.response.MedicationResponse;
 import br.com.dosecerta.exception.MedicationNotFoundException;
 import br.com.dosecerta.model.enums.MedicationStatus;
@@ -51,6 +52,31 @@ class MedicationServiceTest {
         );
 
         assertEquals(MedicationStatus.PAUSED, paused.status());
+    }
+
+    @Test
+    void shouldUpdateMedicationDetails() {
+        MedicationResponse created = service.create(sampleRequest());
+
+        MedicationResponse updated = service.update(
+                created.id(),
+                new UpdateMedicationRequest(
+                        "Amoxicilina",
+                        "875 mg",
+                        12,
+                        10,
+                        LocalTime.of(9, 30),
+                        ReminderType.NOTIFICATION
+                )
+        );
+
+        assertEquals("Amoxicilina", updated.name());
+        assertEquals("875 mg", updated.dosage());
+        assertEquals(12, updated.intervalHours());
+        assertEquals(10, updated.durationDays());
+        assertEquals(LocalTime.of(9, 30), updated.firstDose());
+        assertEquals(ReminderType.NOTIFICATION, updated.reminderType());
+        assertEquals(MedicationStatus.ACTIVE, updated.status());
     }
 
     @Test

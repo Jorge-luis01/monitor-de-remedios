@@ -1,6 +1,6 @@
 # Backend
 
-API REST inicial do Dose Certa, desenvolvida com Java 21 e Spring Boot 4.1.1.
+API REST inicial do Dose Certa, desenvolvida com Java 25 e Spring Boot 4.1.1.
 
 ## Endpoints
 

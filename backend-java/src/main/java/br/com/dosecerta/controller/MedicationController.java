@@ -1,6 +1,7 @@
 package br.com.dosecerta.controller;
 
 import br.com.dosecerta.dto.request.CreateMedicationRequest;
+import br.com.dosecerta.dto.request.UpdateMedicationRequest;
 import br.com.dosecerta.dto.request.UpdateMedicationStatusRequest;
 import br.com.dosecerta.dto.response.MedicationResponse;
 import br.com.dosecerta.service.MedicationService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,6 +53,14 @@ public class MedicationController {
     @GetMapping("/{id}")
     public MedicationResponse findById(@PathVariable UUID id) {
         return service.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public MedicationResponse update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateMedicationRequest request
+    ) {
+        return service.update(id, request);
     }
 
     @PatchMapping("/{id}/status")
