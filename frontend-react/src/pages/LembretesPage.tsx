@@ -22,45 +22,44 @@ export function LembretesPage() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const nextReminderId = reminders.find(
+  const nextReminder = reminders.find(
     (reminder) => !reminder.taken && reminder.time >= currentTime,
-  )?.id;
+  );
 
   return (
     <>
       <PageHeader title="Lembretes" description={`Hoje, ${getTodayLabel()}`} />
 
-      <section className="schedule" aria-label="Doses de hoje">
-        {reminders.length === 0 ? (
+      <section className="schedule" aria-label="Próxima dose de hoje">
+        {!nextReminder ? (
           <div className="empty-state">
-            <h2>Nenhuma dose para hoje</h2>
-            <p>Cadastre ou retome um medicamento para criar lembretes.</p>
+            <h2>Nenhuma próxima dose para hoje</h2>
+            <p>As doses tomadas ou já encerradas não aparecem nesta tela.</p>
           </div>
-        ) : reminders.map((reminder) => (
+        ) : (
           <article
-            key={reminder.id}
-            className={`schedule-item ${reminder.id === nextReminderId ? 'current' : ''} ${reminder.taken ? 'taken' : ''}`}
+            key={nextReminder.id}
+            className="schedule-item current"
           >
-            <time dateTime={reminder.time}>{reminder.time}</time>
+            <time dateTime={nextReminder.time}>{nextReminder.time}</time>
             <div>
-              <h2>{reminder.medicationName}</h2>
+              <h2>{nextReminder.medicationName}</h2>
               <p>
-                {reminder.reminderType === 'alarm'
+                {nextReminder.reminderType === 'alarm'
                   ? <Clock3 aria-hidden="true" size={13} />
                   : <Bell aria-hidden="true" size={13} />}
-                {reminder.dosage} · {reminder.reminderType === 'alarm' ? 'Alarme' : 'Notificação'}
+                {nextReminder.dosage} · {nextReminder.reminderType === 'alarm' ? 'Alarme' : 'Notificação'}
               </p>
             </div>
             <button
               type="button"
               className="take-button"
-              disabled={reminder.taken}
-              onClick={() => markDoseAsTaken(reminder.id)}
+              onClick={() => markDoseAsTaken(nextReminder.id)}
             >
-              {reminder.taken ? <><Check aria-hidden="true" size={14} /> Tomado</> : 'Tomar'}
+              <Check aria-hidden="true" size={14} /> Tomar
             </button>
           </article>
-        ))}
+        )}
       </section>
     </>
   );
