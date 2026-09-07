@@ -1,6 +1,16 @@
-import { Accessibility, Bell, Cloud, Volume2, type LucideIcon } from 'lucide-react';
+import { Accessibility, Bell, Clock3, Cloud, Volume2, type LucideIcon } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { useMedications } from '../context/MedicationContext';
+import {
+  getNativeReminderStatus,
+  isAndroidApp,
+  openNotificationSettings,
+  requestExactAlarmAccess,
+  requestNotificationPermission,
+  selectAlarmSound,
+  type NativeReminderStatus,
+} from '../services/androidReminders';
 import type { Preferences } from '../types/medication';
 
 interface SettingRowProps {
@@ -32,6 +42,24 @@ function SettingRow({ icon: Icon, title, description, checked, onChange }: Setti
 
 export function ConfiguracoesPage() {
   const { preferences, updatePreference } = useMedications();
+  const [nativeStatus, setNativeStatus] = useState<NativeReminderStatus | null>(null);
+  const [statusMessage, setStatusMessage] = useState('');
+  const androidApp = isAndroidApp();
+
+  const refreshStatus = useCallback(async (): Promise<void> => {
+    setNativeStatus(await getNativeReminderStatus());
+  }, []);
+
+  useEffect(() => {
+    void refreshStatus();
+    const refreshWhenVisible = (): void => {
+      if (document.visibilityState === 'visible') {
+        void refreshStatus();
+      }
+    };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => document.removeEventListener('visibilitychange', refreshWhenVisible);
+  }, [refreshStatus]);
 
   const update = <Key extends keyof Preferences>(key: Key) =>
     (checked: boolean): void => updatePreference(key, checked);
@@ -41,21 +69,81 @@ export function ConfiguracoesPage() {
       <PageHeader title="Configurações" description="Personalize sua experiência." />
 
       <section className="settings-list" aria-label="Preferências">
-        <div className="setting setting-static">
+        <div className="setting setting-action">
           <span className="setting-icon"><Bell aria-hidden="true" size={19} /></span>
           <span className="setting-copy">
-            <strong>Notificações do navegador</strong>
-            <small>Serão ativadas quando o serviço de alarmes for integrado.</small>
+            <strong>Notificações</strong>
+            <small>
+              {!androidApp
+                ? 'Disponível no aplicativo para Android.'
+                : nativeStatus?.notificationsEnabled
+                  ? 'Permitidas pelo Android.'
+                  : 'Permissão necessária para exibir os lembretes.'}
+            </small>
           </span>
-          <span className="status-chip">Em breve</span>
+          <button
+            className="setting-button"
+            type="button"
+            disabled={!androidApp}
+            onClick={() => {
+              const canRequestPermission = !nativeStatus
+                || nativeStatus.notificationPermission === 'prompt'
+                || nativeStatus.notificationPermission === 'prompt-with-rationale';
+              const action = canRequestPermission
+                ? requestNotificationPermission().then(() => undefined)
+                : openNotificationSettings();
+              void action.then(refreshStatus);
+            }}
+          >
+            {nativeStatus?.notificationsEnabled
+              ? 'Ajustar'
+              : nativeStatus?.notificationPermission === 'denied'
+                ? 'Abrir ajustes'
+                : 'Permitir'}
+          </button>
         </div>
-        <div className="setting setting-static">
+        <div className="setting setting-action">
+          <span className="setting-icon"><Clock3 aria-hidden="true" size={19} /></span>
+          <span className="setting-copy">
+            <strong>Alarmes exatos</strong>
+            <small>
+              {!androidApp
+                ? 'Disponível no aplicativo para Android.'
+                : nativeStatus?.exactAlarmGranted
+                  ? 'Horários exatos autorizados.'
+                  : 'Autorize para reduzir atrasos no modo de economia.'}
+            </small>
+          </span>
+          <button
+            className="setting-button"
+            type="button"
+            disabled={!androidApp || nativeStatus?.exactAlarmGranted}
+            onClick={() => void requestExactAlarmAccess().then(refreshStatus)}
+          >
+            {nativeStatus?.exactAlarmGranted ? 'Ativado' : 'Autorizar'}
+          </button>
+        </div>
+        <div className="setting setting-action">
           <span className="setting-icon"><Volume2 aria-hidden="true" size={19} /></span>
           <span className="setting-copy">
             <strong>Som dos alarmes</strong>
-            <small>Será configurável quando os alarmes forem integrados.</small>
+            <small>{androidApp ? nativeStatus?.soundTitle ?? 'Carregando…' : 'Disponível no aplicativo para Android.'}</small>
           </span>
-          <span className="status-chip">Em breve</span>
+          <button
+            className="setting-button"
+            type="button"
+            disabled={!androidApp}
+            onClick={() => {
+              void selectAlarmSound().then((result) => {
+                if (result?.changed) {
+                  setStatusMessage(`Som selecionado: ${result.soundTitle}.`);
+                }
+                return refreshStatus();
+              });
+            }}
+          >
+            Escolher
+          </button>
         </div>
         <SettingRow
           icon={Accessibility}
@@ -73,8 +161,9 @@ export function ConfiguracoesPage() {
           <span className="status-chip">Em breve</span>
         </div>
       </section>
+      {statusMessage && <p className="success-message" role="status">{statusMessage}</p>}
       <p className="settings-note">
-        Os dados atuais ficam somente neste navegador. Não use este protótipo como substituto de orientação médica.
+        Os dados ficam salvos neste dispositivo. O Android pode atrasar alarmes quando a autorização de horários exatos estiver desativada. Não use o aplicativo como substituto de orientação médica.
       </p>
     </>
   );

@@ -7,6 +7,10 @@ import {
   type ReactNode,
 } from 'react';
 import { readStorage, writeStorage } from '../services/storage';
+import {
+  requestInitialNotificationPermission,
+  syncNativeReminders,
+} from '../services/androidReminders';
 import type { Medication, MedicationDraft, Preferences } from '../types/medication';
 
 const MEDICATIONS_KEY = 'dose-certa:medications';
@@ -52,6 +56,16 @@ export function MedicationProvider({ children }: { children: ReactNode }) {
   useEffect(() => writeStorage(MEDICATIONS_KEY, medications), [medications]);
   useEffect(() => writeStorage(TAKEN_DOSES_KEY, takenDoseIds), [takenDoseIds]);
   useEffect(() => writeStorage(PREFERENCES_KEY, preferences), [preferences]);
+
+  useEffect(() => {
+    void requestInitialNotificationPermission();
+  }, []);
+
+  useEffect(() => {
+    void syncNativeReminders(medications).catch((error: unknown) => {
+      console.error('Não foi possível sincronizar os lembretes com o Android.', error);
+    });
+  }, [medications]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('large-text', preferences.largeText);

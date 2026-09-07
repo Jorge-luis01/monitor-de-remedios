@@ -82,3 +82,65 @@ export function buildTodayReminders(
     })
     .sort((a, b) => a.time.localeCompare(b.time));
 }
+
+export interface ScheduledNativeReminder {
+  id: string;
+  medicationName: string;
+  dosage: string;
+  reminderType: Medication['reminderType'];
+  triggerAt: number;
+}
+
+export function buildScheduledReminders(
+  medications: Medication[],
+  now = new Date(),
+): ScheduledNativeReminder[] {
+  const nowTimestamp = now.getTime();
+
+  return medications
+    .filter((medication) => medication.active)
+    .flatMap((medication) => {
+      const firstDoseMinutes = timeToMinutes(medication.firstDose);
+      if (firstDoseMinutes === null || medication.intervalHours <= 0 || medication.durationDays <= 0) {
+        return [];
+      }
+
+      const treatmentStart = new Date(medication.createdAt);
+      if (Number.isNaN(treatmentStart.getTime())) {
+        return [];
+      }
+      treatmentStart.setHours(0, 0, 0, 0);
+
+      const dosesPerDay = Math.max(1, Math.floor(24 / medication.intervalHours));
+      const reminders: ScheduledNativeReminder[] = [];
+
+      for (let day = 0; day < medication.durationDays; day += 1) {
+        for (let dose = 0; dose < dosesPerDay; dose += 1) {
+          const doseMinutes = firstDoseMinutes + dose * medication.intervalHours * 60;
+          const trigger = new Date(
+            treatmentStart.getFullYear(),
+            treatmentStart.getMonth(),
+            treatmentStart.getDate() + day,
+            Math.floor(doseMinutes / 60),
+            doseMinutes % 60,
+            0,
+            0,
+          );
+          const triggerAt = trigger.getTime();
+
+          if (triggerAt > nowTimestamp) {
+            reminders.push({
+              id: `${medication.id}-${triggerAt}`,
+              medicationName: medication.name,
+              dosage: medication.dosage,
+              reminderType: medication.reminderType,
+              triggerAt,
+            });
+          }
+        }
+      }
+
+      return reminders;
+    })
+    .sort((first, second) => first.triggerAt - second.triggerAt);
+}

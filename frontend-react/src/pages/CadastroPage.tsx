@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { useMedications } from '../context/MedicationContext';
 import { getDosePreview } from '../services/schedule';
+import { requestExactAlarmAccessOnce } from '../services/androidReminders';
 import type { ReminderType } from '../types/medication';
 
 export function CadastroPage() {
@@ -38,6 +39,7 @@ export function CadastroPage() {
       firstDose,
       reminderType,
     });
+    void requestExactAlarmAccessOnce(reminderType);
     navigate('/medicamentos', { state: { created: name } });
   }
 
