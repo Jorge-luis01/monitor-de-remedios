@@ -16,6 +16,7 @@ import type { Medication, MedicationDraft, Preferences } from '../types/medicati
 const MEDICATIONS_KEY = 'dose-certa:medications';
 const TAKEN_DOSES_KEY = 'dose-certa:taken-doses';
 const PREFERENCES_KEY = 'dose-certa:preferences';
+const REMINDER_SYNC_DELAY_MS = 150;
 
 const initialMedications: Medication[] = [];
 
@@ -62,9 +63,13 @@ export function MedicationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void syncNativeReminders(medications).catch((error: unknown) => {
-      console.error('Não foi possível sincronizar os lembretes com o Android.', error);
-    });
+    const timeoutId = window.setTimeout(() => {
+      void syncNativeReminders(medications).catch((error: unknown) => {
+        console.error('Não foi possível sincronizar os lembretes com o Android.', error);
+      });
+    }, REMINDER_SYNC_DELAY_MS);
+
+    return () => window.clearTimeout(timeoutId);
   }, [medications]);
 
   useEffect(() => {
