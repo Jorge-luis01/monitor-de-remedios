@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:h2:file:./data/dose-certa;DB_CLOSE_ON_EXIT=FALSE
     username: sa
-    password: ""
+    password: ${DOSE_CERTA_DB_PASSWORD:}
     driver-class-name: org.h2.Driver
   jpa:
     open-in-view: false
@@ -12,15 +12,20 @@ spring:
       ddl-auto: update
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
   jackson:
     default-property-inclusion: non_null
 
 server:
+  address: ${DOSE_CERTA_BIND_ADDRESS:127.0.0.1}
   port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
 
 app:
+  api-token: ${DOSE_CERTA_API_TOKEN:}
   cors:
     allowed-origins:
       - http://localhost:5173

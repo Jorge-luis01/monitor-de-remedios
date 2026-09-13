@@ -25,7 +25,9 @@ final class ReminderStore {
     }
 
     static void setReminders(Context context, JSONArray reminders) {
-        preferences(context).edit().putString(REMINDERS_KEY, reminders.toString()).apply();
+        if (!preferences(context).edit().putString(REMINDERS_KEY, reminders.toString()).commit()) {
+            throw new IllegalStateException("Não foi possível salvar os lembretes.");
+        }
     }
 
     static Uri getAlarmSound(Context context) {

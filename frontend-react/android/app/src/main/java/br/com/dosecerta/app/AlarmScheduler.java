@@ -5,11 +5,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 final class AlarmScheduler {
+    private static final String LOG_TAG = "DoseCertaAlarms";
     static final String EXTRA_REMINDER_ID = "reminder_id";
     static final String EXTRA_MEDICATION_NAME = "medication_name";
     static final String EXTRA_DOSAGE = "dosage";
@@ -17,28 +19,78 @@ final class AlarmScheduler {
 
     private AlarmScheduler() {}
 
-    static void replaceAll(Context context, JSONArray reminders) {
+    static synchronized void replaceAll(Context context, JSONArray reminders) {
         JSONArray previous = ReminderStore.getReminders(context);
-        for (int index = 0; index < previous.length(); index++) {
-            JSONObject reminder = previous.optJSONObject(index);
-            if (reminder != null) {
-                cancel(context, reminder.optString("id"));
-            }
-        }
+        java.util.Set<String> previousIds = reminderIds(previous);
+        java.util.Set<String> currentIds = reminderIds(reminders);
 
         ReminderStore.setReminders(context, reminders);
-        scheduleStored(context);
+        try {
+            scheduleAll(context, reminders, true);
+        } catch (RuntimeException scheduleFailure) {
+            rollback(context, previous, previousIds, reminders, scheduleFailure);
+            throw scheduleFailure;
+        }
+
+        for (int index = 0; index < previous.length(); index++) {
+            JSONObject reminder = previous.optJSONObject(index);
+            if (reminder != null && !currentIds.contains(reminder.optString("id"))) {
+                cancel(context, reminder.optString("id"));
+                NotificationHelper.cancelReminder(context, reminder.optString("id"));
+            }
+        }
     }
 
-    static void scheduleStored(Context context) {
-        JSONArray reminders = ReminderStore.getReminders(context);
+    static synchronized boolean scheduleStored(Context context) {
+        return scheduleAll(context, ReminderStore.getReminders(context), false);
+    }
+
+    private static boolean scheduleAll(Context context, JSONArray reminders, boolean failFast) {
         long now = System.currentTimeMillis();
+        boolean complete = true;
         for (int index = 0; index < reminders.length(); index++) {
             JSONObject reminder = reminders.optJSONObject(index);
             if (reminder != null && reminder.optLong("triggerAt", 0L) > now) {
-                schedule(context, reminder);
+                try {
+                    schedule(context, reminder);
+                } catch (RuntimeException exception) {
+                    complete = false;
+                    if (failFast) throw exception;
+                    Log.e(LOG_TAG, "Não foi possível restaurar um lembrete armazenado.", exception);
+                }
             }
         }
+        return complete;
+    }
+
+    private static void rollback(Context context, JSONArray previous, java.util.Set<String> previousIds,
+                                 JSONArray attempted, RuntimeException originalFailure) {
+        try {
+            ReminderStore.setReminders(context, previous);
+        } catch (RuntimeException restoreFailure) {
+            originalFailure.addSuppressed(restoreFailure);
+        }
+
+        for (int index = 0; index < attempted.length(); index++) {
+            JSONObject reminder = attempted.optJSONObject(index);
+            if (reminder != null && !previousIds.contains(reminder.optString("id"))) {
+                cancel(context, reminder.optString("id"));
+            }
+        }
+        try {
+            scheduleAll(context, previous, true);
+        } catch (RuntimeException restoreFailure) {
+            originalFailure.addSuppressed(restoreFailure);
+        }
+    }
+
+    private static java.util.Set<String> reminderIds(JSONArray reminders) {
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (int index = 0; index < reminders.length(); index++) {
+            JSONObject reminder = reminders.optJSONObject(index);
+            if (reminder != null) ids.add(reminder.optString("id"));
+        }
+        return ids;
     }
 
     static boolean canScheduleExact(Context context) {
@@ -57,7 +109,7 @@ final class AlarmScheduler {
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) {
-            return;
+            throw new IllegalStateException("Serviço de alarmes indisponível.");
         }
 
         PendingIntent pendingIntent = pendingIntent(context, reminder, PendingIntent.FLAG_UPDATE_CURRENT);

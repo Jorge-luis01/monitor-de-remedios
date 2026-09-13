@@ -1,5 +1,5 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { buildScheduledReminders } from './schedule';
+import { buildScheduledReminders, MAX_SCHEDULED_REMINDERS } from './schedule';
 import type { Medication, ReminderType } from '../types/medication';
 
 export type NotificationPermission = 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale';
@@ -94,9 +94,19 @@ export async function selectAlarmSound(): Promise<SoundResult | null> {
   return isAndroidApp() ? nativePlugin.selectAlarmSound() : null;
 }
 
-export async function syncNativeReminders(medications: Medication[]): Promise<void> {
+export async function syncNativeReminders(medications: Medication[], takenDoseIds: string[] = []): Promise<void> {
   if (!isAndroidApp()) {
     return;
   }
-  await nativePlugin.syncReminders({ reminders: buildScheduledReminders(medications) });
+  const taken = new Set(takenDoseIds);
+  const reminders = buildScheduledReminders(
+    medications,
+    new Date(),
+    MAX_SCHEDULED_REMINDERS + 1,
+    taken,
+  );
+  if (reminders.length > MAX_SCHEDULED_REMINDERS) {
+    throw new Error(`O cronograma ultrapassa ${MAX_SCHEDULED_REMINDERS} lembretes futuros.`);
+  }
+  await nativePlugin.syncReminders({ reminders });
 }

@@ -23,4 +23,13 @@ public class AlarmSchedulerTest {
             AlarmScheduler.requestCode("dose-2")
         );
     }
+
+    @Test
+    public void notificationTagsRemainUniqueWhenJavaHashesCollide() {
+        String first = "Aa-2026-09-13-08:00";
+        String second = "BB-2026-09-13-08:00";
+
+        assertEquals(AlarmScheduler.requestCode(first), AlarmScheduler.requestCode(second));
+        assertNotEquals(NotificationHelper.notificationTag(first), NotificationHelper.notificationTag(second));
+    }
 }

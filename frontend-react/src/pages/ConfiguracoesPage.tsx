@@ -62,7 +62,7 @@ export function ConfiguracoesPage() {
   }, [refreshStatus]);
 
   const update = <Key extends keyof Preferences>(key: Key) =>
-    (checked: boolean): void => updatePreference(key, checked);
+    (checked: boolean): void => { updatePreference(key, checked); };
 
   return (
     <>

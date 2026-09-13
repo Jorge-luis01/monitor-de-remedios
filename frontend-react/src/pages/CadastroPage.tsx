@@ -31,7 +31,7 @@ export function CadastroPage() {
       return;
     }
 
-    addMedication({
+    const added = addMedication({
       name,
       dosage,
       intervalHours,
@@ -39,6 +39,7 @@ export function CadastroPage() {
       firstDose,
       reminderType,
     });
+    if (!added) return;
     void requestExactAlarmAccessOnce(reminderType);
     navigate('/medicamentos', { state: { created: name } });
   }
@@ -52,10 +53,10 @@ export function CadastroPage() {
 
       <form className="medication-form" onSubmit={handleSubmit}>
         <label htmlFor="name">Nome ou marca</label>
-        <input id="name" name="name" placeholder="Ex.: Dipirona" required />
+        <input id="name" name="name" placeholder="Ex.: Dipirona" maxLength={120} required />
 
         <label htmlFor="dosage">Dose</label>
-        <input id="dosage" name="dosage" placeholder="Ex.: 500 mg" required />
+        <input id="dosage" name="dosage" placeholder="Ex.: 500 mg" maxLength={60} required />
 
         <label htmlFor="intervalHours">Intervalo entre as doses</label>
         <div className="select-wrap">

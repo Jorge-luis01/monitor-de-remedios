@@ -141,22 +141,26 @@ public class DoseCertaPlugin extends Plugin {
         }
 
         JSONArray sanitized = new JSONArray();
+        java.util.Set<String> ids = new java.util.HashSet<>();
         for (int index = 0; index < received.length(); index++) {
             JSONObject item = received.optJSONObject(index);
             if (item == null) {
-                continue;
+                call.reject("Lembrete inválido. O agendamento anterior foi preservado.");
+                return;
             }
 
             String id = item.optString("id", "").trim();
             String medicationName = item.optString("medicationName", "").trim();
             long triggerAt = item.optLong("triggerAt", 0L);
             String reminderType = item.optString("reminderType", "notification");
-            if (id.isEmpty() || medicationName.isEmpty() || triggerAt <= System.currentTimeMillis()) {
-                continue;
+            if (id.isEmpty() || id.length() > 160 || medicationName.isEmpty() || medicationName.length() > 120
+                || item.optString("dosage", "").length() > 60 || !ids.add(id)
+                || triggerAt <= 0 || triggerAt > System.currentTimeMillis() + 366L * 24 * 60 * 60 * 1000
+                || (!"alarm".equals(reminderType) && !"notification".equals(reminderType))) {
+                call.reject("Lembrete inválido. O agendamento anterior foi preservado.");
+                return;
             }
-            if (!"alarm".equals(reminderType) && !"notification".equals(reminderType)) {
-                reminderType = "notification";
-            }
+            if (triggerAt <= System.currentTimeMillis()) continue;
 
             JSONObject reminder = new JSONObject();
             try {
@@ -171,7 +175,12 @@ public class DoseCertaPlugin extends Plugin {
             }
         }
 
-        AlarmScheduler.replaceAll(getContext(), sanitized);
+        try {
+            AlarmScheduler.replaceAll(getContext(), sanitized);
+        } catch (RuntimeException exception) {
+            call.reject("Não foi possível atualizar os alarmes. Confira o agendamento.");
+            return;
+        }
         JSObject response = new JSObject();
         response.put("scheduledCount", sanitized.length());
         response.put("exactAlarmGranted", AlarmScheduler.canScheduleExact(getContext()));

@@ -66,3 +66,35 @@ Este projeto é demonstrativo e não substitui orientação médica.
 ### Observação sobre a integração
 
 O frontend continua armazenando os medicamentos no `localStorage`. A conexão da interface React com a API Spring Boot e o banco H2 permanece como a próxima etapa da aplicação.
+
+## Adições de segurança — setembro de 2026
+
+- API local protegida por token configurado no ambiente, restrita a loopback por padrão, com limite de requisições e cabeçalhos de proteção. Sem token configurado, o CRUD fica bloqueado. Veja `backend-java/README.md`.
+- Console H2 desativado. Configuração opcional de senha via ambiente sem modificar automaticamente bancos existentes.
+- Android: backups e transferência de dados desativados por regras explícitas; tráfego HTTP sem criptografia bloqueado; compartilhamento de arquivos restrito a uma subpasta de cache.
+- Notificações solicitam conteúdo privado na tela bloqueada, com versão pública genérica. O comportamento final depende das configurações do Android e do usuário.
+- Dados locais validados antes de uso. Conteúdo inválido não é substituído automaticamente; falhas de gravação e de sincronização geram avisos na interface.
+- Cronograma único entre interface e Android, incluindo doses após a meia-noite e identificação consistente de doses tomadas. Alterações nas doses tomadas passam a atualizar os alarmes nativos.
+- Ponte Android valida identificadores, duplicatas, tamanhos e datas antes de trocar o agendamento. Lembretes removidos também cancelam a notificação correspondente.
+- Alterações são persistidas antes de chegar ao estado e aos alarmes; falhas preservam o agendamento anterior. Entradas e quantidade total de lembretes são verificadas antes do cadastro ou da retomada.
+- Cotas públicas, rejeitadas e autenticadas da API são independentes. A interface web aplica uma política de segurança de conteúdo restritiva.
+- Testes de regressão: `npm test` no frontend (Node 24) e `mvn test` no backend.
+
+### Limitações que permanecem
+
+O armazenamento local não ganhou criptografia própria nem bloqueio biométrico. A API
+ainda não possui usuários/permissões por registro, paginação ou proteção de borda
+adequada a exposição pública. O limite nativo de 1.000 lembretes continua existindo:
+um cadastro ou retomada que o excederia é rejeitado antes de alterar os dados e alarmes;
+ainda é necessário implementar agendamento incremental para tratamentos maiores. APK de debug não é uma
+versão de produção; publicação requer assinatura release e testes em aparelho físico.
+
+As regras Android seguem a documentação de
+[backup](https://developer.android.com/identity/data/autobackup) e de
+[privacidade das notificações](https://developer.android.com/develop/ui/compose/notifications/create-notification).
+
+### Validação desta atualização
+
+- Backend: 14 testes aprovados, incluindo isolamento das cotas, acesso HTTP real com e sem token e rejeição CORS.
+- Frontend: 7 testes aprovados, verificação TypeScript e build de produção concluídos.
+- Android: sincronização Capacitor concluída; Java e recursos compilaram na primeira tentativa. O empacotamento falhou ao acessar um asset na pasta OneDrive. A tentativa dos testes unitários também encontrou arquivos de build bloqueados. Portanto, APK e testes Android completos não estão validados nesta atualização, nem houve teste em aparelho físico.

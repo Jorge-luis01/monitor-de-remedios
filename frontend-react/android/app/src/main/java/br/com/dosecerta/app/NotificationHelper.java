@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat;
 final class NotificationHelper {
     static final String NOTIFICATION_CHANNEL = "dose_certa_reminders";
     static final String ACTION_DISMISS = "br.com.dosecerta.app.DISMISS_ALARM";
+    private static final int REMINDER_NOTIFICATION_ID = 0;
 
     private NotificationHelper() {}
 
@@ -64,7 +65,12 @@ final class NotificationHelper {
             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(new NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(R.drawable.ic_stat_medication)
+                .setContentTitle("Dose Certa")
+                .setContentText("Você tem um lembrete. Desbloqueie para ver os detalhes.")
+                .build())
             .setCategory(alarm ? NotificationCompat.CATEGORY_ALARM : NotificationCompat.CATEGORY_REMINDER)
             .setPriority(alarm ? NotificationCompat.PRIORITY_MAX : NotificationCompat.PRIORITY_HIGH);
 
@@ -77,7 +83,7 @@ final class NotificationHelper {
 
         if (alarm) {
             Intent dismissIntent = new Intent(context, AlarmActionReceiver.class)
-                .setAction(ACTION_DISMISS)
+                .setAction(ACTION_DISMISS + "." + reminderId)
                 .putExtra(AlarmScheduler.EXTRA_REMINDER_ID, reminderId);
             PendingIntent dismissPendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -92,7 +98,18 @@ final class NotificationHelper {
         if (alarm) {
             notification.flags |= Notification.FLAG_INSISTENT;
         }
-        NotificationManagerCompat.from(context).notify(AlarmScheduler.requestCode(reminderId), notification);
+        NotificationManagerCompat.from(context).notify(notificationTag(reminderId), REMINDER_NOTIFICATION_ID, notification);
+    }
+
+    static void cancelReminder(Context context, String reminderId) {
+        NotificationManagerCompat manager = NotificationManagerCompat.from(context);
+        manager.cancel(notificationTag(reminderId), REMINDER_NOTIFICATION_ID);
+        // Remove também notificações criadas por versões anteriores, que usavam apenas o hash.
+        manager.cancel(AlarmScheduler.requestCode(reminderId));
+    }
+
+    static String notificationTag(String reminderId) {
+        return reminderId;
     }
 
     static String ensureAlarmChannel(Context context) {

@@ -6,7 +6,14 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { readStorage, writeStorage } from '../services/storage';
+import { hasStorageErrors, readStorage, writeStorage } from '../services/storage';
+import { buildScheduledReminders, MAX_SCHEDULED_REMINDERS } from '../services/schedule';
+import {
+  isMedication,
+  isMedicationList,
+  isPreferences,
+  isTakenDoseList,
+} from '../services/validation';
 import {
   requestInitialNotificationPermission,
   syncNativeReminders,
@@ -25,14 +32,17 @@ const initialPreferences: Preferences = {
 };
 
 interface MedicationContextValue {
+  storageError: boolean;
+  reminderError: boolean;
+  operationError: string;
   medications: Medication[];
   takenDoseIds: string[];
   preferences: Preferences;
-  addMedication: (draft: MedicationDraft) => void;
-  toggleMedication: (id: string) => void;
-  removeMedication: (id: string) => void;
-  markDoseAsTaken: (id: string) => void;
-  updatePreference: <Key extends keyof Preferences>(key: Key, value: Preferences[Key]) => void;
+  addMedication: (draft: MedicationDraft) => boolean;
+  toggleMedication: (id: string) => boolean;
+  removeMedication: (id: string) => boolean;
+  markDoseAsTaken: (id: string) => boolean;
+  updatePreference: <Key extends keyof Preferences>(key: Key, value: Preferences[Key]) => boolean;
 }
 
 const MedicationContext = createContext<MedicationContextValue | null>(null);
@@ -43,20 +53,29 @@ function createMedicationId(): string {
     : `med-${Date.now()}`;
 }
 
+function exceedsNativeReminderLimit(medications: Medication[], takenDoseIds: string[]): boolean {
+  return buildScheduledReminders(
+    medications,
+    new Date(),
+    MAX_SCHEDULED_REMINDERS + 1,
+    new Set(takenDoseIds),
+  ).length > MAX_SCHEDULED_REMINDERS;
+}
+
 export function MedicationProvider({ children }: { children: ReactNode }) {
   const [medications, setMedications] = useState<Medication[]>(() =>
-    readStorage(MEDICATIONS_KEY, initialMedications),
+    readStorage(MEDICATIONS_KEY, initialMedications, isMedicationList),
   );
   const [takenDoseIds, setTakenDoseIds] = useState<string[]>(() =>
-    readStorage(TAKEN_DOSES_KEY, []),
+    readStorage(TAKEN_DOSES_KEY, [], isTakenDoseList),
   );
   const [preferences, setPreferences] = useState<Preferences>(() =>
-    readStorage(PREFERENCES_KEY, initialPreferences),
+    readStorage(PREFERENCES_KEY, initialPreferences, isPreferences),
   );
 
-  useEffect(() => writeStorage(MEDICATIONS_KEY, medications), [medications]);
-  useEffect(() => writeStorage(TAKEN_DOSES_KEY, takenDoseIds), [takenDoseIds]);
-  useEffect(() => writeStorage(PREFERENCES_KEY, preferences), [preferences]);
+  const [storageError, setStorageError] = useState(hasStorageErrors);
+  const [reminderError, setReminderError] = useState(false);
+  const [operationError, setOperationError] = useState('');
 
   useEffect(() => {
     void requestInitialNotificationPermission();
@@ -64,13 +83,15 @@ export function MedicationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      void syncNativeReminders(medications).catch((error: unknown) => {
-        console.error('Não foi possível sincronizar os lembretes com o Android.', error);
-      });
+      if (hasStorageErrors(MEDICATIONS_KEY, TAKEN_DOSES_KEY)
+        || !isMedicationList(medications) || !isTakenDoseList(takenDoseIds)) return;
+      void syncNativeReminders(medications, takenDoseIds)
+        .then(() => setReminderError(false))
+        .catch(() => setReminderError(true));
     }, REMINDER_SYNC_DELAY_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [medications]);
+  }, [medications, takenDoseIds]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('large-text', preferences.largeText);
@@ -78,41 +99,107 @@ export function MedicationProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<MedicationContextValue>(
     () => ({
+      storageError,
+      reminderError,
+      operationError,
       medications,
       takenDoseIds,
       preferences,
       addMedication: (draft) => {
-        setMedications((current) => [
-          ...current,
-          {
-            ...draft,
-            id: createMedicationId(),
-            active: true,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        const medication: Medication = {
+          ...draft,
+          id: createMedicationId(),
+          active: true,
+          createdAt: new Date().toISOString(),
+        };
+        const next = [...medications, medication];
+        if (!isMedication(medication) || !isMedicationList(next)) {
+          setOperationError('Os dados do medicamento são inválidos ou o limite de cadastros foi atingido.');
+          return false;
+        }
+        if (exceedsNativeReminderLimit(next, takenDoseIds)) {
+          setOperationError(`O cadastro ultrapassaria o limite de ${MAX_SCHEDULED_REMINDERS} lembretes futuros. Reduza a duração ou pause outro tratamento.`);
+          return false;
+        }
+        if (!writeStorage(MEDICATIONS_KEY, next)) {
+          setStorageError(true);
+          setOperationError('Não foi possível salvar o medicamento. Nenhum alarme foi alterado.');
+          return false;
+        }
+        setMedications(next);
+        setStorageError(hasStorageErrors());
+        setOperationError('');
+        return true;
       },
       toggleMedication: (id) => {
-        setMedications((current) =>
-          current.map((medication) =>
-            medication.id === id
-              ? { ...medication, active: !medication.active }
-              : medication,
-          ),
-        );
+        const selected = medications.find((medication) => medication.id === id);
+        if (!selected) return false;
+        const next = medications.map((medication) =>
+          medication.id === id ? { ...medication, active: !medication.active } : medication);
+        const resuming = !selected.active;
+        if (!isMedicationList(next) || (resuming && exceedsNativeReminderLimit(next, takenDoseIds))) {
+          setOperationError(`Não foi possível retomar: o cronograma ultrapassaria ${MAX_SCHEDULED_REMINDERS} lembretes futuros.`);
+          return false;
+        }
+        if (!writeStorage(MEDICATIONS_KEY, next)) {
+          setStorageError(true);
+          setOperationError('Não foi possível salvar a alteração. Os alarmes foram preservados.');
+          return false;
+        }
+        setMedications(next);
+        setStorageError(hasStorageErrors());
+        setOperationError('');
+        return true;
       },
       removeMedication: (id) => {
-        setMedications((current) => current.filter((medication) => medication.id !== id));
-        setTakenDoseIds((current) => current.filter((doseId) => !doseId.startsWith(`${id}-`)));
+        if (!medications.some((medication) => medication.id === id)) return false;
+        const nextMedications = medications.filter((medication) => medication.id !== id);
+        const nextTakenDoseIds = takenDoseIds.filter((doseId) => !doseId.startsWith(`${id}-`));
+        const takenChanged = nextTakenDoseIds.length !== takenDoseIds.length;
+        if (takenChanged && !writeStorage(TAKEN_DOSES_KEY, nextTakenDoseIds)) {
+          setStorageError(true);
+          setOperationError('Não foi possível salvar a exclusão. Os dados e alarmes foram preservados.');
+          return false;
+        }
+        if (!writeStorage(MEDICATIONS_KEY, nextMedications)) {
+          if (takenChanged) writeStorage(TAKEN_DOSES_KEY, takenDoseIds);
+          setStorageError(true);
+          setOperationError('Não foi possível salvar a exclusão. Os dados e alarmes foram preservados.');
+          return false;
+        }
+        setMedications(nextMedications);
+        if (takenChanged) setTakenDoseIds(nextTakenDoseIds);
+        setStorageError(hasStorageErrors());
+        setOperationError('');
+        return true;
       },
       markDoseAsTaken: (id) => {
-        setTakenDoseIds((current) => (current.includes(id) ? current : [...current, id]));
+        if (takenDoseIds.includes(id)) return true;
+        const next = [...takenDoseIds, id];
+        if (!isTakenDoseList(next) || !writeStorage(TAKEN_DOSES_KEY, next)) {
+          setStorageError(true);
+          setOperationError('Não foi possível registrar a dose. Os alarmes foram preservados.');
+          return false;
+        }
+        setTakenDoseIds(next);
+        setStorageError(hasStorageErrors());
+        setOperationError('');
+        return true;
       },
       updatePreference: (key, preferenceValue) => {
-        setPreferences((current) => ({ ...current, [key]: preferenceValue }));
+        const next = { ...preferences, [key]: preferenceValue };
+        if (!isPreferences(next) || !writeStorage(PREFERENCES_KEY, next)) {
+          setStorageError(true);
+          setOperationError('Não foi possível salvar a preferência.');
+          return false;
+        }
+        setPreferences(next);
+        setStorageError(hasStorageErrors());
+        setOperationError('');
+        return true;
       },
     }),
-    [medications, preferences, takenDoseIds],
+    [medications, preferences, takenDoseIds, storageError, reminderError, operationError],
   );
 
   return <MedicationContext.Provider value={value}>{children}</MedicationContext.Provider>;

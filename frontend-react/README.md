@@ -54,3 +54,17 @@ Os agendamentos ficam persistidos no aparelho e são restaurados após a reinici
 ## Limitações
 
 O frontend ainda não consome a API do projeto e o backup em nuvem continua planejado. Os dados e agendamentos atuais ficam somente no dispositivo.
+
+## Adições de segurança — setembro de 2026
+
+- Validação em tempo de execução dos dados locais; registros inválidos são preservados no armazenamento, sem sobrescrita automática. Falhas de leitura/gravação geram aviso visível.
+- Alterações só chegam ao estado e aos alarmes depois de persistidas. A troca nativa é serializada e tenta restaurar o agendamento anterior se uma operação falhar.
+- O limite atual de 1.000 lembretes é verificado antes do cadastro ou da retomada. Tratamentos acima dele exigem agendamento incremental, ainda pendente.
+- Uma linha do tempo compartilhada calcula as doses na tela e no Android, sem reiniciar intervalos à meia-noite. Doses marcadas como tomadas deixam de integrar o próximo agendamento nativo.
+- Android sem backup/transferência automática dos dados, sem tráfego HTTP em claro e com FileProvider restrito a `cache/shared/`. Notificações usam versão pública genérica para a tela bloqueada, respeitando as configurações do sistema.
+- A interface aplica uma política de segurança de conteúdo que restringe scripts, objetos, fontes, imagens e conexões.
+- `npm test` executa sete testes de regressão usando Node 24. `npm run typecheck` e `npm run build` validam tipos e empacotamento.
+
+Essas medidas não criptografam o `localStorage` nem substituem testes de alarmes em
+aparelho físico. A API continua separada do frontend; sua nova autenticação está
+documentada em `../backend-java/README.md`. Nenhum token deve ser embutido no frontend.
